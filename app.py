@@ -1,3 +1,8 @@
+"""
+Impacto dos Castores na Isla Navarino - Chile
+Visualização empilhada: Imagem de Satélite Real (True Color) acima do Mapa de Impacto
+"""
+
 import streamlit as st
 import plotly.express as px
 import pandas as pd
@@ -11,7 +16,7 @@ import time
 # Configuração da página
 st.set_page_config(
     page_title="Castores na Isla Navarino - Comparação Vertical",
-    page_icon="🦫",
+    page_icon="🪵",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -77,28 +82,43 @@ st.markdown("""
     hr {
         margin: 10px 0;
     }
+    .sidebar-content {
+        padding: 10px;
+    }
+    .event-icon {
+        font-size: 1.2rem;
+        margin-right: 8px;
+    }
+    .fonte-dados {
+        line-height: 1.6;
+    }
+    .fonte-dados p {
+        margin: 5px 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Título
-st.markdown('<div class="main-title">🦫 Impacto dos Castores na Isla Navarino</div>', unsafe_allow_html=True)
+# Título com ícone de tronco de árvore
+st.markdown('<div class="main-title">🪵 Impacto dos Castores na Isla Navarino</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Chile - Comparação Vertical: 🛰️ Satélite Real (acima) vs 🗺️ Mapa de Impacto (abaixo)</div>', unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Beaver_%28PSF%29.png/800px-Beaver_%28PSF%29.png", use_column_width=True)
+    # Removida a imagem que estava aqui
+    st.markdown("### 👤 **Amauri - São Paulo - 2026**")
+    st.markdown("---")
     
     st.markdown("## 📅 Linha do Tempo")
     
     eventos = {
-        1946: "🟫 Introdução dos 20 castores",
-        1960: "🟤 Chegada ao Chile",
-        1990: "⚫ Primeiros danos significativos",
-        2008: "🟠 Plano de erradicação",
-        2010: "🔴 'Floresta fantasma' documentada",
-        2015: "🟡 50.000 represas",
-        2020: "🟠 70.000+ represas",
-        2025: "🔴 78% da área afetada"
+        1946: "🇦🇷 **Introdução dos 20 castores** - Chegada à Tierra del Fuego",
+        1960: "🚶‍♂️ **Chegada ao Chile** - Cruzaram o Estreito de Magalhães",
+        1990: "⚠️ **Primeiros danos significativos** documentados",
+        2008: "📋 **Plano de erradicação** Chile-Argentina",
+        2010: "👻 **'Floresta fantasma'** documentada por Miguel Gallardo",
+        2015: "💧 **50.000 represas** estimadas",
+        2020: "💧💧 **70.000+ represas** documentadas por satélite",
+        2025: "🔴 **78% da área afetada** (projeção)"
     }
     
     for ano_evento, evento in eventos.items():
@@ -119,12 +139,14 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### 📊 Fonte dos Dados")
-    st.info("""
-    **National Geographic (2019)**<br>
-    **GEF - Global Environment Facility**<br>
-    **CONAF - Chile**<br>
-    **Universidad de Magallanes**
-    """)
+    st.markdown("""
+    <div class="fonte-dados">
+        <p>📰 <b>National Geographic</b> (2019)</p>
+        <p>🌍 <b>GEF - Global Environment Facility</b></p>
+        <p>🇨🇱 <b>CONAF - Chile</b></p>
+        <p>🎓 <b>Universidad de Magallanes</b></p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Função para calcular percentual de impacto baseado no ano
 def calcular_percentual_impacto(ano):
@@ -482,6 +504,18 @@ elif ano <= 2000:
     st.info("📅 **Período de expansão (1990-2000):** População de castores cresce exponencialmente. Primeiros danos significativos documentados.")
 elif ano <= 2010:
     st.warning("📅 **Período crítico (2000-2010):** 'Floresta fantasma' documentada em 2010. Castores já alteraram significativamente a paisagem.")
+    
+    # Adicionar fala do morador quando ano = 2010
+    if ano == 2010:
+        st.markdown("""
+        <div class="warning-box">
+        <strong>👻 RELATO DE MIGUEL GALLARDO (Guarda florestal, 2010):</strong><br>
+        <i>"Estava tudo branco porque tudo estava morto. Parecia uma floresta fantasma. 
+        No lugar onde havia uma exuberante floresta de árvores faia-lenga, encontrei troncos caídos, 
+        galhos sem folhas e tocos retorcidos."</i>
+        </div>
+        """, unsafe_allow_html=True)
+        
 elif ano <= 2020:
     st.error("📅 **Período de devastação (2010-2020):** 70.000+ represas documentadas via satélite. Mais de 60% da área afetada.")
 else:
@@ -531,7 +565,7 @@ fig.add_hrect(y0=60, y1=78, line_width=0, fillcolor="red", opacity=0.1)
 
 st.plotly_chart(fig, use_container_width=True)
 
-# Footer
+# Footer com ícone de gelo
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #999; font-size: 0.8rem; padding: 1rem;">
@@ -542,7 +576,7 @@ st.markdown("""
     </p>
     <p>
         📍 <b>Coordenadas:</b> 54°56′S 67°37′W - Isla Navarino, Região de Magallanes, Chile<br>
-        🦫 <i>"A maior alteração de paisagem em florestas subantárticas desde a última era do gelo"</i>
+        🧊 <i>"A maior alteração de paisagem em florestas subantárticas desde a última era do gelo"</i>
     </p>
     <hr>
     <p style="font-size: 0.7rem;">
