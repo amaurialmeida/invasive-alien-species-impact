@@ -1,6 +1,6 @@
 """
-Impacto dos Castores na Isla Navarino - Chile
-Visualização empilhada: Imagem de Satélite Real (True Color) acima do Mapa de Impacto
+Impacto de los Castores en Isla Navarino - Chile
+Aplicación multilingüe: Español (default) | Português | English
 """
 
 import streamlit as st
@@ -9,21 +9,264 @@ import pandas as pd
 import numpy as np
 import folium
 from streamlit_folium import folium_static, st_folium
-from branca.colormap import linear
 from folium.plugins import HeatMap
-import time
 
-# Configuração da página
+# ==================================================
+# CONFIGURACIÓN DE IDIOMAS
+# ==================================================
+
+# Inicializar idioma en sesión (default: español)
+if 'idioma' not in st.session_state:
+    st.session_state.idioma = 'es'
+
+# Diccionario de textos por idioma
+textos = {
+    # Navegación / Navigation
+    'nav_home': {'es': 'INICIO', 'pt': 'INÍCIO', 'en': 'HOME'},
+    'nav_works': {'es': 'TRABAJOS', 'pt': 'TRABALHOS', 'en': 'WORKS'},
+    'nav_cv': {'es': 'CV', 'pt': 'CV', 'en': 'CV'},
+    'nav_linkedin': {'es': 'LINKEDIN', 'pt': 'LINKEDIN', 'en': 'LINKEDIN'},
+    'nav_github': {'es': 'GITHUB', 'pt': 'GITHUB', 'en': 'GITHUB'},
+    'nav_email': {'es': 'CORREO', 'pt': 'E-MAIL', 'en': 'E-MAIL'},
+    
+    # Títulos principales
+    'main_title': {'es': '🌳 Impacto de los Castores en Isla Navarino', 
+                   'pt': '🌳 Impacto dos Castores na Isla Navarino', 
+                   'en': '🌳 Beaver Impact on Isla Navarino'},
+    'subtitle': {'es': 'Chile - Comparación Vertical: 🛰️ Satélite Real (arriba) vs 🗺️ Mapa de Impacto (abajo)',
+                 'pt': 'Chile - Comparação Vertical: 🛰️ Satélite Real (acima) vs 🗺️ Mapa de Impacto (abaixo)',
+                 'en': 'Chile - Vertical Comparison: 🛰️ Real Satellite (top) vs 🗺️ Impact Map (bottom)'},
+    
+    # Sidebar
+    'sidebar_author': {'es': '🇨🇱 Amauri - São Paulo - 2026', 
+                       'pt': '🇧🇷 Amauri - São Paulo - 2026', 
+                       'en': '🇺🇸 Amauri - São Paulo - 2026'},
+    'sidebar_timeline': {'es': '📅 Línea de Tiempo', 
+                         'pt': '📅 Linha do Tempo', 
+                         'en': '📅 Timeline'},
+    'sidebar_legend': {'es': '🎨 Leyenda del Mapa de Impacto',
+                       'pt': '🎨 Legenda do Mapa de Impacto',
+                       'en': '🎨 Impact Map Legend'},
+    'sidebar_sources': {'es': '📊 Fuente de Datos',
+                        'pt': '📊 Fonte dos Dados',
+                        'en': '📊 Data Sources'},
+    
+    # Eventos históricos
+    'event_1946': {'es': '🇦🇷 Introducción de los 20 castores - Llegada a Tierra del Fuego',
+                   'pt': '🇦🇷 Introdução dos 20 castores - Chegada à Tierra del Fuego',
+                   'en': '🇦🇷 Introduction of 20 beavers - Arrival to Tierra del Fuego'},
+    'event_1960': {'es': '🚶‍♂️ Llegada a Chile - Cruzaron el Estrecho de Magallanes',
+                   'pt': '🚶‍♂️ Chegada ao Chile - Cruzaram o Estreito de Magalhães',
+                   'en': '🚶‍♂️ Arrival to Chile - Crossed the Strait of Magellan'},
+    'event_1990': {'es': '⚠️ Primeros daños significativos documentados',
+                   'pt': '⚠️ Primeiros danos significativos documentados',
+                   'en': '⚠️ First significant damages documented'},
+    'event_2008': {'es': '📋 Plan de erradicación Chile-Argentina',
+                   'pt': '📋 Plano de erradicação Chile-Argentina',
+                   'en': '📋 Chile-Argentina eradication plan'},
+    'event_2010': {'es': '👻 "Bosque fantasma" documentado por Miguel Gallardo',
+                   'pt': '👻 "Floresta fantasma" documentada por Miguel Gallardo',
+                   'en': '👻 "Ghost forest" documented by Miguel Gallardo'},
+    'event_2015': {'es': '💧 50.000 represas estimadas',
+                   'pt': '💧 50.000 represas estimadas',
+                   'en': '💧 50,000 estimated dams'},
+    'event_2020': {'es': '💧💧 70.000+ represas documentadas por satélite',
+                   'pt': '💧💧 70.000+ represas documentadas por satélite',
+                   'en': '💧💧 70,000+ dams documented by satellite'},
+    'event_2025': {'es': '🔴 78% del área afectada (proyección)',
+                   'pt': '🔴 78% da área afetada (projeção)',
+                   'en': '🔴 78% of affected area (projection)'},
+    
+    # Legendas do mapa
+    'legend_high': {'es': 'Alto impacto (>60%)', 'pt': 'Alto impacto (>60%)', 'en': 'High impact (>60%)'},
+    'legend_moderate': {'es': 'Impacto moderado (30-60%)', 'pt': 'Impacto moderado (30-60%)', 'en': 'Moderate impact (30-60%)'},
+    'legend_low': {'es': 'Bajo impacto (<30%)', 'pt': 'Baixo impacto (<30%)', 'en': 'Low impact (<30%)'},
+    'legend_dams': {'es': 'Represas de castores', 'pt': 'Represas dos castores', 'en': 'Beaver dams'},
+    'legend_heatmap': {'es': 'Concentración de actividad', 'pt': 'Concentração de atividade', 'en': 'Activity concentration'},
+    
+    # Botones de idioma
+    'btn_es': {'es': '🇪🇸 Español', 'pt': '🇪🇸 Espanhol', 'en': '🇪🇸 Spanish'},
+    'btn_pt': {'es': '🇧🇷 Português', 'pt': '🇧🇷 Português', 'en': '🇧🇷 Portuguese'},
+    'btn_en': {'es': '🇺🇸 English', 'pt': '🇺🇸 Inglês', 'en': '🇺🇸 English'},
+    
+    # Controles del slider
+    'slider_label': {'es': '📅 Arrastre para ver la evolución del impacto de los castores:',
+                     'pt': '📅 Arraste para ver a evolução do impacto dos castores:',
+                     'en': '📅 Drag to see the evolution of beaver impact:'},
+    
+    # Métricas
+    'metric_year': {'es': '📅 Año', 'pt': '📅 Ano', 'en': '📅 Year'},
+    'metric_years': {'es': 'años', 'pt': 'anos', 'en': 'years'},
+    'metric_affected': {'es': '🌳 Área afectada', 'pt': '🌳 Área afetada', 'en': '🌳 Affected area'},
+    'metric_dams': {'es': '🦫 Represas', 'pt': '🦫 Represas', 'en': '🦫 Dams'},
+    'metric_beavers': {'es': '🦫 Castores', 'pt': '🦫 Castores', 'en': '🦫 Beavers'},
+    'metric_hectares': {'es': '🌲 Hectáreas devastadas', 'pt': '🌲 Hectares dizimados', 'en': '🌲 Devastated hectares'},
+    'since': {'es': 'desde', 'pt': 'desde', 'en': 'since'},
+    
+    # Títulos de los mapas
+    'map_sat_title': {'es': '🛰️ MAPA SUPERIOR: IMAGEN DE SATÉLITE REAL (TRUE COLOR)',
+                      'pt': '🛰️ MAPA SUPERIOR: IMAGEM DE SATÉLITE REAL (TRUE COLOR)',
+                      'en': '🛰️ TOP MAP: REAL SATELLITE IMAGE (TRUE COLOR)'},
+    'map_impact_title': {'es': '🗺️ MAPA INFERIOR: IMPACTO AMBIENTAL DE LOS CASTORES',
+                         'pt': '🗺️ MAPA INFERIOR: IMPACTO AMBIENTAL DOS CASTORES',
+                         'en': '🗺️ BOTTOM MAP: ENVIRONMENTAL BEAVER IMPACT'},
+    
+    # Análisis
+    'analysis_title': {'es': '📊 Análisis de la Comparación',
+                       'pt': '📊 Análise da Comparação',
+                       'en': '📊 Comparison Analysis'},
+    'analysis_sat': {'es': '🛰️ Qué observar en el mapa superior (Satélite)',
+                     'pt': '🛰️ O que observar no mapa superior (Satélite)',
+                     'en': '🛰️ What to observe in the top map (Satellite)'},
+    'analysis_sat_text': {'es': '- Colores reales: vegetación verde, agua azul, suelo marrón\n- Círculos semitransparentes: indican áreas afectadas\n- Compare directamente la devastación en la imagen real\n- Cuanto más intenso el rojo, mayor el impacto',
+                          'pt': '- Cores reais: vegetação verde, água azul, solo marrom\n- Círculos semi-transparentes: indicam áreas afetadas\n- Compare diretamente a devastação na imagem real\n- Quanto mais intenso o vermelho, maior o impacto',
+                          'en': '- Real colors: green vegetation, blue water, brown soil\n- Semi-transparent circles: indicate affected areas\n- Directly compare devastation in the real image\n- The more intense the red, the greater the impact'},
+    'analysis_impact': {'es': '🗺️ Qué observar en el mapa inferior (Impacto)',
+                        'pt': '🗺️ O que observar no mapa inferior (Impacto)',
+                        'en': '🗺️ What to observe in the bottom map (Impact)'},
+    'analysis_impact_text': {'es': '- Círculos coloreados: intensidad del impacto por región\n- Mapa de calor: dónde hay más actividad\n- Puntos azules: ubicación de las represas\n- Use zoom para ver detalles específicos',
+                             'pt': '- Círculos coloridos: intensidade do impacto por região\n- Mapa de calor: onde há mais atividade\n- Pontos azuis: localização das represas\n- Use zoom para ver detalhes específicos',
+                             'en': '- Colored circles: impact intensity by region\n- Heatmap: where there is more activity\n- Blue dots: dam locations\n- Use zoom to see specific details'},
+    
+    # Contexto histórico
+    'context_title': {'es': '📜 Contexto Histórico',
+                      'pt': '📜 Contexto Histórico',
+                      'en': '📜 Historical Context'},
+    'context_period1': {'es': 'Período inicial (1985-1990): Castores aún estableciéndose en la isla. Impacto localizado y limitado.',
+                        'pt': 'Período inicial (1985-1990): Castores ainda se estabelecendo na ilha. Impacto localizado e limitado.',
+                        'en': 'Initial period (1985-1990): Beavers still establishing on the island. Localized and limited impact.'},
+    'context_period2': {'es': 'Período de expansión (1990-2000): La población de castores crece exponencialmente. Primeros daños significativos documentados.',
+                        'pt': 'Período de expansão (1990-2000): População de castores cresce exponencialmente. Primeiros danos significativos documentados.',
+                        'en': 'Expansion period (1990-2000): Beaver population grows exponentially. First significant damages documented.'},
+    'context_period3': {'es': 'Período crítico (2000-2010): "Bosque fantasma" documentado en 2010. Los castores ya han alterado significativamente el paisaje.',
+                        'pt': 'Período crítico (2000-2010): "Floresta fantasma" documentada em 2010. Castores já alteraram significativamente a paisagem.',
+                        'en': 'Critical period (2000-2010): "Ghost forest" documented in 2010. Beavers have already significantly altered the landscape.'},
+    'context_period4': {'es': 'Período de devastación (2010-2020): 70.000+ represas documentadas vía satélite. Más del 60% del área afectada.',
+                        'pt': 'Período de devastação (2010-2020): 70.000+ represas documentadas via satélite. Mais de 60% da área afetada.',
+                        'en': 'Devastation period (2010-2020): 70,000+ dams documented by satellite. Over 60% of affected area.'},
+    'context_period5': {'es': 'Período actual (2020-2025): Proyección del 78% del área afectada. Plan de erradicación en marcha, pero el impacto ya es masivo.',
+                        'pt': 'Período atual (2020-2025): Projeção de 78% da área afetada. Plano de erradicação em andamento, mas impacto já é massivo.',
+                        'en': 'Current period (2020-2025): Projection of 78% of affected area. Eradication plan underway, but impact is already massive.'},
+    
+    # Relato de Gallardo
+    'gallardo_quote': {'es': '👻 RELATO DE MIGUEL GALLARDO (Guarda forestal, 2010):\n\n"Todo estaba blanco porque todo estaba muerto. Parecía un bosque fantasma. Donde antes había un exuberante bosque de hayas, encontré troncos caídos, ramas sin hojas y tocones retorcidos."',
+                       'pt': '👻 RELATO DE MIGUEL GALLARDO (Guarda florestal, 2010):\n\n"Estava tudo branco porque tudo estava morto. Parecia uma floresta fantasma. Onde antes havia uma exuberante floresta de faias, encontrei troncos caídos, galhos sem folhas e tocos retorcidos."',
+                       'en': '👻 TESTIMONY OF MIGUEL GALLARDO (Forest ranger, 2010):\n\n"Everything was white because everything was dead. It looked like a ghost forest. Where there once was a lush beech forest, I found fallen trunks, leafless branches, and twisted stumps."'},
+    
+    # Gráfico
+    'chart_title': {'es': '📈 Evolución Histórica del Impacto (1985-2025)',
+                    'pt': '📈 Evolução Histórica do Impacto (1985-2025)',
+                    'en': '📈 Historical Impact Evolution (1985-2025)'},
+    'chart_ylabel': {'es': 'Área de la Isla Afectada (%)',
+                     'pt': 'Área da Ilha Afetada (%)',
+                     'en': 'Island Area Affected (%)'},
+    
+    # Footer
+    'footer_sat': {'es': 'Mapa Superior: ESRI World Imagery - Imágenes satelitales True Color de alta resolución',
+                   'pt': 'Mapa Superior: ESRI World Imagery - Imagens de satélite True Color de alta resolução',
+                   'en': 'Top Map: ESRI World Imagery - High resolution True Color satellite images'},
+    'footer_impact': {'es': 'Mapa Inferior: CartoDB - Visualización estilizada del impacto ambiental',
+                      'pt': 'Mapa Inferior: CartoDB - Visualização estilizada do impacto ambiental',
+                      'en': 'Bottom Map: CartoDB - Stylized visualization of environmental impact'},
+    'footer_coords': {'es': 'Coordenadas: 54°56′S 67°37′W - Isla Navarino, Región de Magallanes, Chile',
+                      'pt': 'Coordenadas: 54°56′S 67°37′W - Isla Navarino, Região de Magallanes, Chile',
+                      'en': 'Coordinates: 54°56′S 67°37′W - Isla Navarino, Magallanes Region, Chile'},
+    'footer_quote': {'es': '🗺️ "La mayor alteración del paisaje en bosques subantárticos desde la última era del hielo"',
+                     'pt': '🗺️ "A maior alteração de paisagem em florestas subantárticas desde a última era do gelo"',
+                     'en': '🗺️ "The largest landscape alteration in subantarctic forests since the last ice age"'},
+    'footer_note': {'es': 'Nota: Las imágenes satelitales se actualizan periódicamente. La superposición de impacto se simula con base en datos científicos reales.',
+                    'pt': 'Nota: As imagens de satélite são atualizadas periodicamente. A sobreposição de impacto é simulada com base em dados científicos reais.',
+                    'en': 'Note: Satellite images are updated periodically. Impact overlay is simulated based on real scientific data.'},
+}
+
+# Función para obtener texto traducido
+def t(key):
+    return textos[key][st.session_state.idioma]
+
+# Función para cambiar idioma
+def cambiar_idioma(idioma):
+    st.session_state.idioma = idioma
+    st.rerun()
+
+# ==================================================
+# CONFIGURACIÓN DE LA PÁGINA
+# ==================================================
+
 st.set_page_config(
-    page_title="Castores na Isla Navarino - Comparação Vertical",
-    page_icon="🪵",
+    page_title="Castores en Isla Navarino - Impacto Ambiental",
+    page_icon="🌳",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Estilo CSS
+# Barra de navegación superior (como en el ejemplo)
 st.markdown("""
 <style>
+    .nav-bar {
+        background: linear-gradient(90deg, #2c5f2d, #1a3d1a);
+        padding: 12px 25px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .nav-links {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .nav-link {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 5px 10px;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+    .nav-link:hover {
+        background-color: rgba(255,255,255,0.2);
+        color: #ffeb3b;
+    }
+    .nav-brand {
+        color: #ffeb3b;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .lang-buttons {
+        display: flex;
+        gap: 8px;
+    }
+    .lang-btn {
+        background-color: rgba(255,255,255,0.15);
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+    }
+    .lang-btn:hover {
+        background-color: rgba(255,255,255,0.3);
+        transform: scale(1.02);
+    }
+    .lang-btn-active {
+        background-color: #ffeb3b;
+        color: #1a3d1a;
+        font-weight: bold;
+    }
+    @media (max-width: 768px) {
+        .nav-bar {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .nav-links {
+            justify-content: center;
+        }
+    }
     .main-title {
         font-size: 2.5rem;
         font-weight: bold;
@@ -71,23 +314,11 @@ st.markdown("""
     .map-title-impact {
         background: linear-gradient(90deg, #8b4513, #a0522d);
     }
-    .stButton > button {
-        background-color: #2c5f2d;
-        color: white;
-        border-radius: 20px;
-    }
-    .stButton > button:hover {
-        background-color: #1a3d1a;
-    }
     hr {
         margin: 10px 0;
     }
     .sidebar-content {
         padding: 10px;
-    }
-    .event-icon {
-        font-size: 1.2rem;
-        margin-right: 8px;
     }
     .fonte-dados {
         line-height: 1.6;
@@ -98,47 +329,90 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Título com ícone de tronco de árvore
-st.markdown('<div class="main-title">🪵 Impacto dos Castores na Isla Navarino</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Chile - Comparação Vertical: 🛰️ Satélite Real (acima) vs 🗺️ Mapa de Impacto (abaixo)</div>', unsafe_allow_html=True)
+# ==================================================
+# BARRA DE NAVEGACIÓN SUPERIOR CON BOTONES DE IDIOMA
+# ==================================================
 
-# Sidebar
+col_nav1, col_nav2 = st.columns([3, 1])
+
+with col_nav1:
+    st.markdown(f"""
+    <div class="nav-bar">
+        <div class="nav-links">
+            <span class="nav-brand">🌲 Amauri Almeida</span>
+            <a href="#" class="nav-link">{t('nav_home')}</a>
+            <a href="#" class="nav-link">{t('nav_works')}</a>
+            <a href="#" class="nav-link">{t('nav_cv')}</a>
+            <a href="#" class="nav-link">{t('nav_linkedin')}</a>
+            <a href="#" class="nav-link">{t('nav_github')}</a>
+            <a href="#" class="nav-link">{t('nav_email')}</a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_nav2:
+    # Botones de idioma
+    idioma_actual = st.session_state.idioma
+    col_es, col_pt, col_en = st.columns(3)
+    
+    with col_es:
+        if st.button("🇪🇸 ES", key="btn_es", use_container_width=True):
+            cambiar_idioma('es')
+    with col_pt:
+        if st.button("🇧🇷 PT", key="btn_pt", use_container_width=True):
+            cambiar_idioma('pt')
+    with col_en:
+        if st.button("🇺🇸 EN", key="btn_en", use_container_width=True):
+            cambiar_idioma('en')
+
+st.markdown("---")
+
+# ==================================================
+# TÍTULOS PRINCIPALES
+# ==================================================
+
+st.markdown(f'<div class="main-title">{t("main_title")}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="subtitle">{t("subtitle")}</div>', unsafe_allow_html=True)
+
+# ==================================================
+# SIDEBAR
+# ==================================================
+
 with st.sidebar:
-    # Removida a imagem que estava aqui
-    st.markdown("### 👤 **Amauri - São Paulo - 2026**")
+    st.markdown(f"### 👤 {t('sidebar_author')}")
     st.markdown("---")
     
-    st.markdown("## 📅 Linha do Tempo")
+    st.markdown(f"## {t('sidebar_timeline')}")
     
     eventos = {
-        1946: "🇦🇷 **Introdução dos 20 castores** - Chegada à Tierra del Fuego",
-        1960: "🚶‍♂️ **Chegada ao Chile** - Cruzaram o Estreito de Magalhães",
-        1990: "⚠️ **Primeiros danos significativos** documentados",
-        2008: "📋 **Plano de erradicação** Chile-Argentina",
-        2010: "👻 **'Floresta fantasma'** documentada por Miguel Gallardo",
-        2015: "💧 **50.000 represas** estimadas",
-        2020: "💧💧 **70.000+ represas** documentadas por satélite",
-        2025: "🔴 **78% da área afetada** (projeção)"
+        1946: t('event_1946'),
+        1960: t('event_1960'),
+        1990: t('event_1990'),
+        2008: t('event_2008'),
+        2010: t('event_2010'),
+        2015: t('event_2015'),
+        2020: t('event_2020'),
+        2025: t('event_2025')
     }
     
     for ano_evento, evento in eventos.items():
         st.markdown(f"**{ano_evento}** - {evento}")
     
     st.markdown("---")
-    st.markdown("### 🎨 Legenda do Mapa de Impacto")
-    st.markdown("""
+    st.markdown(f"### {t('sidebar_legend')}")
+    st.markdown(f"""
     <div style="background: white; padding: 10px; border-radius: 8px;">
-        <span style="color: red;">●</span> <b>Vermelho:</b> Alto impacto (>60%)<br>
-        <span style="color: orange;">●</span> <b>Laranja:</b> Impacto moderado (30-60%)<br>
-        <span style="color: yellow;">●</b> <b>Amarelo:</b> Baixo impacto (<30%)<br>
-        <span style="color: blue;">●</span> <b>Azul:</b> Represas dos castores<br>
+        <span style="color: red;">●</span> <b>{t('legend_high')}</b><br>
+        <span style="color: orange;">●</span> <b>{t('legend_moderate')}</b><br>
+        <span style="color: yellow;">●</b> <b>{t('legend_low')}</b><br>
+        <span style="color: blue;">●</span> <b>{t('legend_dams')}</b><br>
         <span style="background: linear-gradient(90deg, blue, lime, yellow, orange, red); width: 100%; height: 3px; display: block; margin: 8px 0;"></span>
-        <span><b>Heatmap:</b> Concentração de atividade</span>
+        <span><b>{t('legend_heatmap')}</b></span>
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown("---")
-    st.markdown("### 📊 Fonte dos Dados")
+    st.markdown(f"### {t('sidebar_sources')}")
     st.markdown("""
     <div class="fonte-dados">
         <p>📰 <b>National Geographic</b> (2019)</p>
@@ -148,9 +422,11 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# Função para calcular percentual de impacto baseado no ano
+# ==================================================
+# FUNCIONES DE MAPAS
+# ==================================================
+
 def calcular_percentual_impacto(ano):
-    """Calcula o percentual de área afetada baseado em dados reais"""
     if ano <= 1990:
         percentual = 0.02 + (ano - 1985) * 0.006
     elif ano <= 2000:
@@ -161,30 +437,16 @@ def calcular_percentual_impacto(ano):
         percentual = 0.33 + (ano - 2010) * 0.024
     else:
         percentual = 0.45 + (ano - 2015) * 0.025
-    
     return min(percentual, 0.78)
 
-# Função para criar mapa de satélite real (True Color)
 def criar_mapa_satelite_real(ano, percentual):
-    """Cria mapa com imagem de satélite real e overlay de impacto"""
-    
-    # Coordenadas centrais da Isla Navarino
-    mapa = folium.Map(
-        location=[-54.93, -67.62],
-        zoom_start=11,
-        control_scale=True
-    )
-    
-    # Camada de satélite True Color (ESRI World Imagery)
+    mapa = folium.Map(location=[-54.93, -67.62], zoom_start=11, control_scale=True)
     folium.TileLayer(
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attr='ESRI - Imagem de Satélite True Color',
-        name='Satélite',
-        overlay=False,
-        control=False
+        attr='ESRI - Imagen Satelital True Color',
+        name='Satélite', overlay=False, control=False
     ).add_to(mapa)
     
-    # Coordenadas dos pontos críticos
     pontos_criticos = {
         "Laguna Rojas": [-54.92, -67.62],
         "Laguna Zafueta": [-54.95, -67.65],
@@ -193,86 +455,29 @@ def criar_mapa_satelite_real(ano, percentual):
         "Lago Navarino": [-54.88, -67.55]
     }
     
-    # Raio base do impacto (em metros)
     raio_base = 800 * percentual
     
-    # Adicionar círculos de impacto semi-transparentes
     for nome, coords in pontos_criticos.items():
         if percentual > 0.6:
-            cor = 'red'
-            opacity = 0.35
+            cor, opacity = 'red', 0.35
         elif percentual > 0.3:
-            cor = 'orange'
-            opacity = 0.3
+            cor, opacity = 'orange', 0.3
         else:
-            cor = 'yellow'
-            opacity = 0.25
+            cor, opacity = 'yellow', 0.25
         
         raio = raio_base + (200 if "Rio" in nome else 0)
-        
-        folium.Circle(
-            radius=raio,
-            location=coords,
-            color=cor,
-            fill=True,
-            fill_color=cor,
-            fill_opacity=opacity,
-            weight=2,
-            popup=f"""
-            <b>{nome}</b><br>
-            <b>Impacto:</b> {percentual*100:.1f}%<br>
-            <b>Ano:</b> {ano}<br>
-            <i>Clique para ver detalhes</i>
-            """
-        ).add_to(mapa)
+        folium.Circle(radius=raio, location=coords, color=cor, fill=True,
+                     fill_color=cor, fill_opacity=opacity, weight=2,
+                     popup=f"{nome}<br>Impacto: {percentual*100:.1f}%<br>Año: {ano}").add_to(mapa)
     
-    # Adicionar marcador central
-    folium.Marker(
-        location=[-54.93, -67.62],
-        popup=f"""
-        <b>🛰️ Isla Navarino - {ano}</b><br>
-        🌍 Imagem de Satélite Real (True Color)<br>
-        🦫 Impacto dos castores: {percentual*100:.1f}%<br>
-        📍 Coordenadas: 54°56′S 67°37′W
-        """,
-        icon=folium.Icon(color='green', icon='satellite', prefix='fa'),
-        tooltip="Isla Navarino"
-    ).add_to(mapa)
-    
-    # Adicionar bounding box para focar na ilha
     bounds = [[-55.10, -67.90], [-54.80, -67.40]]
     mapa.fit_bounds(bounds)
-    
-    # Adicionar legenda no mapa
-    legend_html = '''
-    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; background-color: rgba(0,0,0,0.75); color: white; padding: 10px 15px; border-radius: 8px; font-size: 12px; font-family: monospace;">
-        <b>🛰️ LEGENDA</b><br>
-        <span style="color: #ff6b6b;">◯</span> Área de alto impacto<br>
-        <span style="color: #ffa500;">◯</span> Área de impacto moderado<br>
-        <span style="color: #ffff00;">◯</span> Área de baixo impacto<br>
-        <hr style="margin: 5px 0;">
-        <span>🌍 Fonte: ESRI World Imagery</span><br>
-        <span>📅 Ano: ''' + str(ano) + '''</span>
-    </div>
-    '''
-    mapa.get_root().html.add_child(folium.Element(legend_html))
-    
     return mapa
 
-# Função para criar mapa de impacto (estilo desenho/calor)
 def criar_mapa_impacto(ano, percentual):
-    """Cria mapa de impacto com visualização estilo desenho"""
-    
-    mapa = folium.Map(
-        location=[-54.93, -67.62],
-        zoom_start=11,
-        control_scale=True
-    )
-    
-    # Usar mapa base claro (estilo desenho)
+    mapa = folium.Map(location=[-54.93, -67.62], zoom_start=11, control_scale=True)
     folium.TileLayer('CartoDB positron', name='Mapa Base', control=False).add_to(mapa)
     
-    # Coordenadas dos pontos críticos
     pontos_criticos = {
         "Laguna Rojas": [-54.92, -67.62],
         "Laguna Zafueta": [-54.95, -67.65],
@@ -281,306 +486,185 @@ def criar_mapa_impacto(ano, percentual):
         "Lago Navarino": [-54.88, -67.55]
     }
     
-    # Raio base do impacto
     raio_base = 800 * percentual
     
-    # Adicionar círculos de impacto (cores sólidas)
     for nome, coords in pontos_criticos.items():
         if percentual > 0.6:
-            cor = 'red'
-            fill_color = 'darkred'
-            opacity = 0.6
+            cor, fill_color, opacity = 'red', 'darkred', 0.6
         elif percentual > 0.3:
-            cor = 'orange'
-            fill_color = 'orange'
-            opacity = 0.5
+            cor, fill_color, opacity = 'orange', 'orange', 0.5
         else:
-            cor = 'yellow'
-            fill_color = 'gold'
-            opacity = 0.4
+            cor, fill_color, opacity = 'yellow', 'gold', 0.4
         
         raio = raio_base + (250 if "Rio" in nome else 0)
-        
-        folium.Circle(
-            radius=raio,
-            location=coords,
-            color=cor,
-            fill=True,
-            fill_color=fill_color,
-            fill_opacity=opacity,
-            weight=3,
-            popup=f"""
-            <b>📍 {nome}</b><br>
-            <b>🎯 Nível de impacto:</b> {percentual*100:.1f}%<br>
-            <b>📅 Ano:</b> {ano}<br>
-            <b>🦫 Represas na região:</b> {int(70000 * percentual / 5):,}
-            """
-        ).add_to(mapa)
-        
-        # Adicionar marcador
-        folium.Marker(
-            location=coords,
-            popup=f"<b>{nome}</b><br>Ponto crítico documentado",
-            icon=folium.Icon(color='darkred', icon='exclamation-triangle', prefix='fa'),
-            tooltip=nome
-        ).add_to(mapa)
+        folium.Circle(radius=raio, location=coords, color=cor, fill=True,
+                     fill_color=fill_color, fill_opacity=opacity, weight=3,
+                     popup=f"{nome}<br>Impacto: {percentual*100:.1f}%").add_to(mapa)
+        folium.Marker(location=coords, popup=nome, icon=folium.Icon(color='darkred', icon='exclamation-triangle', prefix='fa')).add_to(mapa)
     
-    # Adicionar heatmap de atividade dos castores
     if percentual > 0.15:
         np.random.seed(42)
         n_pontos = int(100 * percentual)
-        heat_data = []
-        
-        for _ in range(n_pontos):
-            lat = -54.93 + np.random.normal(0, 0.07) * (percentual * 1.5)
-            lon = -67.62 + np.random.normal(0, 0.10) * (percentual * 1.5)
-            intensidade = percentual * np.random.random()
-            heat_data.append([lat, lon, intensidade])
-        
-        HeatMap(
-            heat_data, 
-            radius=25, 
-            blur=15, 
-            min_opacity=0.2,
-            gradient={0.2: 'blue', 0.4: 'lime', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}
-        ).add_to(mapa)
+        heat_data = [[-54.93 + np.random.normal(0, 0.07) * (percentual * 1.5),
+                      -67.62 + np.random.normal(0, 0.10) * (percentual * 1.5),
+                      percentual * np.random.random()] for _ in range(n_pontos)]
+        HeatMap(heat_data, radius=25, blur=15, min_opacity=0.2,
+                gradient={0.2: 'blue', 0.4: 'lime', 0.6: 'yellow', 0.8: 'orange', 1: 'red'}).add_to(mapa)
     
-    # Adicionar represas (pontos azuis)
     num_represas = int(50 * percentual)
     np.random.seed(42)
-    
     for i in range(num_represas):
         lat = -54.93 + np.random.normal(0, 0.05)
         lon = -67.62 + np.random.normal(0, 0.07)
-        
-        folium.CircleMarker(
-            radius=4,
-            location=[lat, lon],
-            color='#0044cc',
-            fill=True,
-            popup=f"<b>Represa #{i+1}</b><br>Construída por castores",
-            fill_color='#0066ff',
-            fill_opacity=0.9,
-            weight=1
-        ).add_to(mapa)
+        folium.CircleMarker(radius=4, location=[lat, lon], color='#0044cc', fill=True,
+                           fill_color='#0066ff', fill_opacity=0.9,
+                           popup=f"Represa #{i+1}").add_to(mapa)
     
-    # Adicionar bounding box
     bounds = [[-55.10, -67.90], [-54.80, -67.40]]
     mapa.fit_bounds(bounds)
     
-    # Adicionar painel de informações
     info_html = f'''
     <div style="position: fixed; top: 20px; right: 20px; z-index: 1000; background-color: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: bold; text-align: center;">
-        <b>📊 ANO: {ano}</b><br>
+        <b>📊 AÑO: {ano}</b><br>
         🦫 Impacto: {percentual*100:.1f}%<br>
         🏗️ Represas: {int(70000 * percentual):,}<br>
-        🌳 Área afetada: {int(31000 * percentual):,} ha
+        🌳 Área afectada: {int(31000 * percentual):,} ha
     </div>
     '''
     mapa.get_root().html.add_child(folium.Element(info_html))
-    
-    # Adicionar legenda
-    legend_html = '''
-    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; background-color: rgba(0,0,0,0.75); color: white; padding: 10px 15px; border-radius: 8px; font-size: 11px; font-family: monospace;">
-        <b>🗺️ MAPA DE IMPACTO</b><br>
-        <span style="color: red;">●</span> Alto impacto (>60%)<br>
-        <span style="color: orange;">●</span> Impacto moderado (30-60%)<br>
-        <span style="color: yellow;">●</span> Baixo impacto (<30%)<br>
-        <span style="color: #0066ff;">●</span> Represa<br>
-        <span style="background: linear-gradient(90deg, blue, lime, yellow, orange, red); width: 100%; height: 3px; display: block; margin: 5px 0;"></span>
-        <span>🔥 Heatmap de atividade</span>
-    </div>
-    '''
-    mapa.get_root().html.add_child(folium.Element(legend_html))
-    
     return mapa
 
-# Interface principal - CONTROLE TEMPORAL
+# ==================================================
+# INTERFAZ PRINCIPAL
+# ==================================================
+
 st.markdown("---")
-st.markdown("## 🎚️ Linha do Tempo Interativa")
+st.markdown(f"## 🎚️ {t('slider_label')}")
 
-# Slider de anos
-ano = st.slider(
-    "**Arraste para ver a evolução do impacto dos castores:**",
-    min_value=1985,
-    max_value=2025,
-    value=2010,
-    step=5,
-    format="%d",
-    key="ano_slider_vertical"
-)
-
-# Calcular percentual
+ano = st.slider("", min_value=1985, max_value=2025, value=2010, step=5, format="%d", key="ano_slider")
 percentual = calcular_percentual_impacto(ano)
 
-# Métricas do ano selecionado
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     delta_1985 = (percentual - calcular_percentual_impacto(1985)) * 100
-    st.metric("📅 Ano", f"{ano}", delta=f"{ano-1985} anos")
+    st.metric(t('metric_year'), f"{ano}", delta=f"{ano-1985} {t('metric_years')}")
 with col2:
-    st.metric("🌳 Área afetada", f"{percentual*100:.1f}%", 
-              delta=f"+{delta_1985:.1f}% desde 1985")
+    st.metric(t('metric_affected'), f"{percentual*100:.1f}%", delta=f"+{delta_1985:.1f}% {t('since')} 1985")
 with col3:
-    st.metric("🦫 Represas", f"{int(70000 * percentual):,}")
+    st.metric(t('metric_dams'), f"{int(70000 * percentual):,}")
 with col4:
-    st.metric("🦫 Castores", f"{int(110000 * percentual):,}")
+    st.metric(t('metric_beavers'), f"{int(110000 * percentual):,}")
 with col5:
-    hectares = int(31000 * percentual)
-    st.metric("🌲 Hectares dizimados", f"{hectares:,} ha")
+    st.metric(t('metric_hectares'), f"{int(31000 * percentual):,} ha")
 
 st.markdown("---")
+st.markdown("## 🗺️ Visualización Vertical")
 
-# ==========================================
-# MAPAS EMPILHADOS (FORMATO VERTICAL)
-# ==========================================
-
-st.markdown("## 🗺️ Visualização Empilhada (Vertical)")
-
-# Mapa 1: Satélite Real (em cima)
-st.markdown("""
+# Mapa Superior
+st.markdown(f"""
 <div class="map-container">
     <div class="map-title map-title-sat">
-        🛰️ MAPA SUPERIOR: IMAGEM DE SATÉLITE REAL (TRUE COLOR)
+        {t('map_sat_title')}
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Criar e exibir mapa de satélite
 mapa_satelite = criar_mapa_satelite_real(ano, percentual)
 st_folium(mapa_satelite, width=900, height=500, returned_objects=[])
 
-# Espaço entre os mapas
 st.markdown("<br>", unsafe_allow_html=True)
 
-# Mapa 2: Impacto (em baixo)
-st.markdown("""
+# Mapa Inferior
+st.markdown(f"""
 <div class="map-container">
     <div class="map-title map-title-impact">
-        🗺️ MAPA INFERIOR: IMPACTO AMBIENTAL DOS CASTORES
+        {t('map_impact_title')}
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Criar e exibir mapa de impacto
 mapa_impacto = criar_mapa_impacto(ano, percentual)
 st_folium(mapa_impacto, width=900, height=500, returned_objects=[])
 
-# ==========================================
-# INFORMAÇÕES ADICIONAIS
-# ==========================================
+# ==================================================
+# ANÁLISIS Y CONTEXTO
+# ==================================================
 
 st.markdown("---")
-st.markdown("## 📊 Análise da Comparação")
+st.markdown(f"## {t('analysis_title')}")
 
 col_analysis1, col_analysis2 = st.columns(2)
 
 with col_analysis1:
-    st.markdown("### 🛰️ O que observar no mapa superior (Satélite)")
-    st.markdown("""
-    - **Cores reais:** Vegetação verde, água azul, solo marrom
-    - **Círculos semi-transparentes:** Indicam áreas afetadas
-    - **Compare diretamente** a devastação na imagem real
-    - **Quanto mais intenso o vermelho,** maior o impacto
-    """)
+    st.markdown(f"### {t('analysis_sat')}")
+    st.markdown(t('analysis_sat_text'))
 
 with col_analysis2:
-    st.markdown("### 🗺️ O que observar no mapa inferior (Impacto)")
-    st.markdown("""
-    - **Círculos coloridos:** Intensidade do impacto por região
-    - **Heatmap (áreas quentes):** Onde há mais atividade
-    - **Pontos azuis:** Localização das represas
-    - **Use zoom** para ver detalhes específicos
-    """)
+    st.markdown(f"### {t('analysis_impact')}")
+    st.markdown(t('analysis_impact_text'))
 
-# Evento histórico relevante para o ano selecionado
 st.markdown("---")
-st.markdown("## 📜 Contexto Histórico")
+st.markdown(f"## {t('context_title')}")
 
 if ano <= 1990:
-    st.info("📅 **Período inicial (1985-1990):** Castores ainda se estabelecendo na ilha. Impacto localizado e limitado.")
+    st.info(f"📅 {t('context_period1')}")
 elif ano <= 2000:
-    st.info("📅 **Período de expansão (1990-2000):** População de castores cresce exponencialmente. Primeiros danos significativos documentados.")
+    st.info(f"📅 {t('context_period2')}")
 elif ano <= 2010:
-    st.warning("📅 **Período crítico (2000-2010):** 'Floresta fantasma' documentada em 2010. Castores já alteraram significativamente a paisagem.")
-    
-    # Adicionar fala do morador quando ano = 2010
+    st.warning(f"📅 {t('context_period3')}")
     if ano == 2010:
-        st.markdown("""
+        st.markdown(f"""
         <div class="warning-box">
-        <strong>👻 RELATO DE MIGUEL GALLARDO (Guarda florestal, 2010):</strong><br>
-        <i>"Estava tudo branco porque tudo estava morto. Parecia uma floresta fantasma. 
-        No lugar onde havia uma exuberante floresta de árvores faia-lenga, encontrei troncos caídos, 
-        galhos sem folhas e tocos retorcidos."</i>
+        <strong>{t('gallardo_quote')}</strong>
         </div>
         """, unsafe_allow_html=True)
-        
 elif ano <= 2020:
-    st.error("📅 **Período de devastação (2010-2020):** 70.000+ represas documentadas via satélite. Mais de 60% da área afetada.")
+    st.error(f"📅 {t('context_period4')}")
 else:
-    st.error("📅 **Período atual (2020-2025):** Projeção de 78% da área afetada. Plano de erradicação em andamento, mas impacto já é massivo.")
+    st.error(f"📅 {t('context_period5')}")
 
-# Gráfico de tendência
+# ==================================================
+# GRÁFICO
+# ==================================================
+
 st.markdown("---")
-st.markdown("## 📈 Evolução Histórica do Impacto (1985-2025)")
+st.markdown(f"## {t('chart_title')}")
 
-# Dados para o gráfico
-dados_tendencia = pd.DataFrame({
-    'Ano': [1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025],
-    'Área_Afetada_%': [2, 5, 10, 15, 22, 33, 45, 60, 78],
-    'Represas': [500, 1500, 4000, 10000, 20000, 35000, 50000, 65000, 75000],
-    'Castores': [5000, 12000, 25000, 45000, 65000, 85000, 100000, 108000, 112000]
+datos_tendencia = pd.DataFrame({
+    'Año': [1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025],
+    'Área_Afectada_%': [2, 5, 10, 15, 22, 33, 45, 60, 78],
 })
 
-fig = px.line(dados_tendencia, x='Ano', y='Área_Afetada_%',
-              title='<b>Progressão da devastação causada pelos castores</b>',
-              markers=True, 
-              color_discrete_sequence=['#8b4513'],
-              line_shape='spline')
-fig.update_layout(
-    xaxis_title="Ano",
-    yaxis_title="Área da Ilha Afetada (%)",
-    height=450,
-    hovermode='x unified',
-    plot_bgcolor='#f5f5f5',
-    title_x=0.5
-)
-
-# Adicionar anotações importantes
-fig.add_annotation(x=2010, y=33, text="🔴 'Floresta Fantasma'", 
-                   showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2,
-                   arrowcolor="red", font=dict(size=10, color="red"))
-fig.add_annotation(x=2008, y=15, text="📋 Plano de erradicação", 
-                   showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2,
-                   arrowcolor="orange", font=dict(size=10, color="orange"))
-fig.add_annotation(x=2025, y=78, text="⚠️ Projeção crítica", 
-                   showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2,
-                   arrowcolor="darkred", font=dict(size=10, color="darkred"))
-
-# Sombra da área de tendência
-fig.add_hrect(y0=0, y1=33, line_width=0, fillcolor="green", opacity=0.1)
-fig.add_hrect(y0=33, y1=60, line_width=0, fillcolor="orange", opacity=0.1)
-fig.add_hrect(y0=60, y1=78, line_width=0, fillcolor="red", opacity=0.1)
-
+fig = px.line(datos_tendencia, x='Año', y='Área_Afectada_%',
+              markers=True, color_discrete_sequence=['#8b4513'], line_shape='spline')
+fig.update_layout(xaxis_title="Año", yaxis_title=t('chart_ylabel'), height=450,
+                  hovermode='x unified', plot_bgcolor='#f5f5f5', title_x=0.5)
+fig.add_annotation(x=2010, y=33, text="🔴 'Bosque Fantasma'", showarrow=True,
+                   arrowhead=2, arrowcolor="red", font=dict(size=10, color="red"))
+fig.add_annotation(x=2025, y=78, text="⚠️ Proyección crítica", showarrow=True,
+                   arrowhead=2, arrowcolor="darkred", font=dict(size=10, color="darkred"))
 st.plotly_chart(fig, use_container_width=True)
 
-# Footer com ícone de gelo
+# ==================================================
+# FOOTER
+# ==================================================
+
 st.markdown("---")
-st.markdown("""
+st.markdown(f"""
 <div style="text-align: center; color: #999; font-size: 0.8rem; padding: 1rem;">
     <p>
-        🛰️ <b>Mapa Superior:</b> ESRI World Imagery - Imagens de satélite True Color de alta resolução<br>
-        🗺️ <b>Mapa Inferior:</b> CartoDB - Visualização estilizada do impacto ambiental<br>
-        📊 <b>Dados científicos:</b> National Geographic (2019) | GEF | CONAF | Universidad de Magallanes
+        🛰️ <b>{t('footer_sat')}</b><br>
+        🗺️ <b>{t('footer_impact')}</b><br>
+        📊 <b>{t('sidebar_sources')}</b>
     </p>
     <p>
-        📍 <b>Coordenadas:</b> 54°56′S 67°37′W - Isla Navarino, Região de Magallanes, Chile<br>
-        🧊 <i>"A maior alteração de paisagem em florestas subantárticas desde a última era do gelo"</i>
+        📍 <b>{t('footer_coords')}</b><br>
+        🧊 <i>{t('footer_quote')}</i>
     </p>
     <hr>
     <p style="font-size: 0.7rem;">
-        ⚠️ <b>Nota:</b> As imagens de satélite são atualizadas periodicamente. A sobreposição de impacto é simulada com base em dados científicos reais.
+        ⚠️ <b>{t('footer_note')}</b>
     </p>
 </div>
 """, unsafe_allow_html=True)
