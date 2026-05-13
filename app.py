@@ -1,8 +1,3 @@
-"""
-Impacto de los Castores en Isla Navarino - Chile
-Aplicación multilingüe: Español (default) | Português | English
-"""
-
 import streamlit as st
 import plotly.express as px
 import pandas as pd
@@ -10,7 +5,6 @@ import numpy as np
 import folium
 from streamlit_folium import folium_static, st_folium
 from folium.plugins import HeatMap
-import webbrowser
 
 # ==================================================
 # CONFIGURACIÓN DE IDIOMAS
@@ -29,17 +23,17 @@ textos = {
     'nav_email': {'es': 'CORREO', 'pt': 'E-MAIL', 'en': 'E-MAIL'},
     
     # Títulos principales
-    'main_title': {'es': '🪵 Impacto de los Castores en Isla Navarino', 
-                   'pt': '🪵 Impacto dos Castores na Isla Navarino', 
-                   'en': '🪵 Beaver Impact on Isla Navarino'},
+    'main_title': {'es': '🌳 Impacto de los Castores en Isla Navarino', 
+                   'pt': '🌳 Impacto dos Castores na Isla Navarino', 
+                   'en': '🌳 Beaver Impact on Isla Navarino'},
     'subtitle': {'es': 'Chile - Comparación Vertical: 🛰️ Satélite Real (arriba) vs 🗺️ Mapa de Impacto (abajo)',
                  'pt': 'Chile - Comparação Vertical: 🛰️ Satélite Real (acima) vs 🗺️ Mapa de Impacto (abaixo)',
                  'en': 'Chile - Vertical Comparison: 🛰️ Real Satellite (top) vs 🗺️ Impact Map (bottom)'},
     
     # Sidebar
-    'sidebar_author': {'es': '🇨🇱 Amauri - São Paulo - 2026', 
-                       'pt': '🇧🇷 Amauri - São Paulo - 2026', 
-                       'en': '🇺🇸 Amauri - São Paulo - 2026'},
+    'sidebar_author': {'es': '🇨🇱 Amauri - 2026', 
+                       'pt': '🇧🇷 Amauri - 2026', 
+                       'en': '🇺🇸 Amauri - 2026'},
     'sidebar_timeline': {'es': '📅 Línea de Tiempo', 
                          'pt': '📅 Linha do Tempo', 
                          'en': '📅 Timeline'},
@@ -54,9 +48,9 @@ textos = {
     'event_1946': {'es': '🇦🇷 Introducción de los 20 castores - Llegada a Tierra del Fuego',
                    'pt': '🇦🇷 Introdução dos 20 castores - Chegada à Tierra del Fuego',
                    'en': '🇦🇷 Introduction of 20 beavers - Arrival to Tierra del Fuego'},
-    'event_1960': {'es': '🚶‍♂️ Llegada a Chile - Cruzaron el Estrecho de Magallanes',
-                   'pt': '🚶‍♂️ Chegada ao Chile - Cruzaram o Estreito de Magalhães',
-                   'en': '🚶‍♂️ Arrival to Chile - Crossed the Strait of Magellan'},
+    'event_1960': {'es': '🇨🇱 Llegada a Chile - Cruzaron el Estrecho de Magallanes',
+                   'pt': '🇨🇱 Chegada ao Chile - Cruzaram o Estreito de Magalhães',
+                   'en': '🇨🇱 Arrival to Chile - Crossed the Strait of Magellan'},
     'event_1990': {'es': '⚠️ Primeros daños significativos documentados',
                    'pt': '⚠️ Primeiros danos significativos documentados',
                    'en': '⚠️ First significant damages documented'},
@@ -84,9 +78,9 @@ textos = {
     'legend_heatmap': {'es': 'Concentración de actividad', 'pt': 'Concentração de atividade', 'en': 'Activity concentration'},
     
     # Botones de idioma
-    'btn_es': {'es': '🇪🇸 Español', 'pt': '🇪🇸 Espanhol', 'en': '🇪🇸 Spanish'},
-    'btn_pt': {'es': '🇧🇷 Português', 'pt': '🇧🇷 Português', 'en': '🇧🇷 Portuguese'},
-    'btn_en': {'es': '🇺🇸 English', 'pt': '🇺🇸 Inglês', 'en': '🇺🇸 English'},
+    'btn_es': {'es': '🇪🇸 ES', 'pt': '🇪🇸 ES', 'en': '🇪🇸 ES'},
+    'btn_pt': {'es': '🇧🇷 PT', 'pt': '🇧🇷 PT', 'en': '🇧🇷 PT'},
+    'btn_en': {'es': '🇺🇸 EN', 'pt': '🇺🇸 EN', 'en': '🇺🇸 EN'},
     
     # Controles del slider
     'slider_label': {'es': '📅 Arrastre para ver la evolución del impacto de los castores:',
@@ -187,22 +181,18 @@ def cambiar_idioma(idioma):
     st.session_state.idioma = idioma
     st.rerun()
 
-# Função para abrir links externos
-def abrir_link(url):
-    webbrowser.open_new_tab(url)
-
 # ==================================================
 # CONFIGURACIÓN DE LA PÁGINA
 # ==================================================
 
 st.set_page_config(
     page_title="Castores en Isla Navarino - Impacto Ambiental",
-    page_icon="🪵",
+    page_icon="🌳",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS para barra de navegación (fondo blanco)
+# CSS para barra de navegación (fondo blanco) y botones de idioma
 st.markdown("""
 <style>
     /* Barra de navegación */
@@ -245,42 +235,43 @@ st.markdown("""
         font-size: 1rem;
         margin-right: 20px;
     }
-    .lang-buttons {
+    
+    /* Container dos botões de idioma */
+    .lang-container {
         display: flex;
+        justify-content: flex-end;
         gap: 10px;
+        margin-bottom: 15px;
     }
-    .lang-btn {
-        background-color: #f0f0f0;
-        color: #333;
-        border: 1px solid #ddd;
-        padding: 6px 14px;
-        border-radius: 20px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        transition: all 0.3s;
+    
+    /* Botões de idioma padronizados - todos com mesma largura */
+    div[data-testid="column"]:has(button) {
+        display: flex;
+        justify-content: center;
     }
-    .lang-btn:hover {
-        background-color: #e0e0e0;
-        transform: scale(1.02);
+    
+    .stButton button {
+        width: 70px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+        height: 36px !important;
+        padding: 5px 0px !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        border-radius: 20px !important;
+        background-color: #f0f0f0 !important;
+        color: #333 !important;
+        border: 1px solid #ddd !important;
+        transition: all 0.3s !important;
     }
-    .lang-btn-active {
-        background-color: #2c5f2d;
-        color: white;
-        border-color: #2c5f2d;
-        font-weight: bold;
+    
+    .stButton button:hover {
+        background-color: #2c5f2d !important;
+        color: white !important;
+        border-color: #2c5f2d !important;
+        transform: scale(1.02) !important;
     }
-    @media (max-width: 768px) {
-        .nav-bar {
-            flex-direction: column;
-            gap: 15px;
-        }
-        .nav-links {
-            justify-content: center;
-        }
-        .lang-buttons {
-            justify-content: center;
-        }
-    }
+    
     .main-title {
         font-size: 2.5rem;
         font-weight: bold;
@@ -340,30 +331,14 @@ st.markdown("""
     .fonte-dados p {
         margin: 5px 0;
     }
-    /* Botão de link estilo texto */
-    .link-button {
-        background: none;
-        border: none;
-        color: #333;
-        font-weight: 500;
-        font-size: 0.9rem;
-        cursor: pointer;
-        padding: 8px 0px;
-        font-family: inherit;
-        transition: all 0.3s;
-    }
-    .link-button:hover {
-        color: #2c5f2d;
-        text-decoration: underline;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==================================================
-# BARRA DE NAVEGACIÓN SUPERIOR (FONDO BLANCO)
+# BARRA DE NAVEGACIÓN SUPERIOR
 # ==================================================
 
-# Usar HTML para la barra de navegación con links clicables
+# HTML para la barra de navegación
 nav_html = f'''
 <div class="nav-bar">
     <div class="nav-links">
@@ -378,16 +353,19 @@ nav_html = f'''
 
 st.markdown(nav_html, unsafe_allow_html=True)
 
-# Botones de idioma debajo de la barra de navegación
-col_lang1, col_lang2, col_lang3 = st.columns([1, 1, 10])
-with col_lang1:
-    if st.button("🇪🇸 ES", key="btn_es_nav", use_container_width=True):
+# Botões de idioma padronizados (todos com mesmo tamanho)
+col_es, col_pt, col_en, col_spacer = st.columns([1, 1, 1, 8])
+
+with col_es:
+    if st.button("🇪🇸 ES", key="btn_es", use_container_width=True):
         cambiar_idioma('es')
-with col_lang2:
-    if st.button("🇧🇷 PT", key="btn_pt_nav", use_container_width=True):
+
+with col_pt:
+    if st.button("🇧🇷 PT", key="btn_pt", use_container_width=True):
         cambiar_idioma('pt')
-with col_lang3:
-    if st.button("🇺🇸 EN", key="btn_en_nav", use_container_width=True):
+
+with col_en:
+    if st.button("🇺🇸 EN", key="btn_en", use_container_width=True):
         cambiar_idioma('en')
 
 st.markdown("---")
@@ -650,7 +628,7 @@ else:
     st.error(f"📅 {t('context_period5')}")
 
 # ==================================================
-# GRÁFICO
+# GRÁFICO - COM CORES RESTAURADAS
 # ==================================================
 
 st.markdown("---")
@@ -661,14 +639,67 @@ datos_tendencia = pd.DataFrame({
     'Área_Afectada_%': [2, 5, 10, 15, 22, 33, 45, 60, 78],
 })
 
+# Gráfico com cores restauradas - linha marrom com marcadores verdes
 fig = px.line(datos_tendencia, x='Año', y='Área_Afectada_%',
-              markers=True, color_discrete_sequence=['#8b4513'], line_shape='spline')
-fig.update_layout(xaxis_title="Año", yaxis_title=t('chart_ylabel'), height=450,
-                  hovermode='x unified', plot_bgcolor='#f5f5f5', title_x=0.5)
-fig.add_annotation(x=2010, y=33, text="🔴 'Bosque Fantasma'", showarrow=True,
-                   arrowhead=2, arrowcolor="red", font=dict(size=10, color="red"))
-fig.add_annotation(x=2025, y=78, text="⚠️ Proyección crítica", showarrow=True,
-                   arrowhead=2, arrowcolor="darkred", font=dict(size=10, color="darkred"))
+              markers=True, 
+              color_discrete_sequence=['#8b4513'],  # Cor marrom para a linha
+              line_shape='spline')
+
+# Personalizar os marcadores
+fig.update_traces(
+    marker=dict(
+        size=12,
+        color='#2c5f2d',  # Cor verde para os marcadores
+        symbol='circle',
+        line=dict(width=2, color='#1a3d1a')
+    ),
+    line=dict(width=3, color='#8b4513')
+)
+
+fig.update_layout(
+    xaxis_title="Año", 
+    yaxis_title=t('chart_ylabel'), 
+    height=450,
+    hovermode='x unified', 
+    plot_bgcolor='#f5f5f5', 
+    title_x=0.5,
+    title_font=dict(size=16, color='#2c5f2d'),
+    xaxis=dict(
+        tickmode='linear',
+        tick0=1985,
+        dtick=5,
+        gridcolor='#e0e0e0',
+        gridwidth=1
+    ),
+    yaxis=dict(
+        gridcolor='#e0e0e0',
+        gridwidth=1,
+        range=[0, 85]
+    )
+)
+
+# Adicionar área sombreada abaixo da linha
+fig.add_trace(px.area(datos_tendencia, x='Año', y='Área_Afectada_%', 
+                      color_discrete_sequence=['rgba(139, 69, 19, 0.2)']).data[0])
+
+# Adicionar anotações
+fig.add_annotation(x=2010, y=33, text="🔴 'Bosque Fantasma'", 
+                   showarrow=True, arrowhead=2, arrowsize=1.2, arrowwidth=2,
+                   arrowcolor="red", font=dict(size=11, color="red", weight="bold"))
+
+fig.add_annotation(x=2008, y=15, text="📋 Plan de erradicación", 
+                   showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2,
+                   arrowcolor="orange", font=dict(size=10, color="orange"))
+
+fig.add_annotation(x=2025, y=78, text="⚠️ Proyección crítica", 
+                   showarrow=True, arrowhead=2, arrowsize=1.2, arrowwidth=2,
+                   arrowcolor="darkred", font=dict(size=11, color="darkred", weight="bold"))
+
+# Áreas de fundo coloridas
+fig.add_hrect(y0=0, y1=33, line_width=0, fillcolor="green", opacity=0.05)
+fig.add_hrect(y0=33, y1=60, line_width=0, fillcolor="orange", opacity=0.05)
+fig.add_hrect(y0=60, y1=85, line_width=0, fillcolor="red", opacity=0.05)
+
 st.plotly_chart(fig, use_container_width=True)
 
 # ==================================================
