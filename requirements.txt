@@ -2,4 +2,6 @@ streamlit
 plotly
 pandas
 numpy
-Pillow
+folium
+streamlit-folium
+branca
