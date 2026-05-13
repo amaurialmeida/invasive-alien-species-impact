@@ -10,6 +10,7 @@ import numpy as np
 import folium
 from streamlit_folium import folium_static, st_folium
 from folium.plugins import HeatMap
+import webbrowser
 
 # ==================================================
 # CONFIGURACIÓN DE IDIOMAS
@@ -22,17 +23,15 @@ if 'idioma' not in st.session_state:
 # Diccionario de textos por idioma
 textos = {
     # Navegación / Navigation
-    'nav_home': {'es': 'INICIO', 'pt': 'INÍCIO', 'en': 'HOME'},
-    'nav_works': {'es': 'TRABAJOS', 'pt': 'TRABALHOS', 'en': 'WORKS'},
-    'nav_cv': {'es': 'CV', 'pt': 'CV', 'en': 'CV'},
+    'nav_portfolio': {'es': 'PORTFOLIO', 'pt': 'PORTFOLIO', 'en': 'PORTFOLIO'},
     'nav_linkedin': {'es': 'LINKEDIN', 'pt': 'LINKEDIN', 'en': 'LINKEDIN'},
     'nav_github': {'es': 'GITHUB', 'pt': 'GITHUB', 'en': 'GITHUB'},
     'nav_email': {'es': 'CORREO', 'pt': 'E-MAIL', 'en': 'E-MAIL'},
     
     # Títulos principales
-    'main_title': {'es': '🌳 Impacto de los Castores en Isla Navarino', 
-                   'pt': '🌳 Impacto dos Castores na Isla Navarino', 
-                   'en': '🌳 Beaver Impact on Isla Navarino'},
+    'main_title': {'es': '🪵 Impacto de los Castores en Isla Navarino', 
+                   'pt': '🪵 Impacto dos Castores na Isla Navarino', 
+                   'en': '🪵 Beaver Impact on Isla Navarino'},
     'subtitle': {'es': 'Chile - Comparación Vertical: 🛰️ Satélite Real (arriba) vs 🗺️ Mapa de Impacto (abajo)',
                  'pt': 'Chile - Comparação Vertical: 🛰️ Satélite Real (acima) vs 🗺️ Mapa de Impacto (abaixo)',
                  'en': 'Chile - Vertical Comparison: 🛰️ Real Satellite (top) vs 🗺️ Impact Map (bottom)'},
@@ -171,9 +170,9 @@ textos = {
     'footer_coords': {'es': 'Coordenadas: 54°56′S 67°37′W - Isla Navarino, Región de Magallanes, Chile',
                       'pt': 'Coordenadas: 54°56′S 67°37′W - Isla Navarino, Região de Magallanes, Chile',
                       'en': 'Coordinates: 54°56′S 67°37′W - Isla Navarino, Magallanes Region, Chile'},
-    'footer_quote': {'es': '🗺️ "La mayor alteración del paisaje en bosques subantárticos desde la última era del hielo"',
-                     'pt': '🗺️ "A maior alteração de paisagem em florestas subantárticas desde a última era do gelo"',
-                     'en': '🗺️ "The largest landscape alteration in subantarctic forests since the last ice age"'},
+    'footer_quote': {'es': '"La mayor alteración del paisaje en bosques subantárticos desde la última era del hielo"',
+                     'pt': '"A maior alteração de paisagem em florestas subantárticas desde a última era do gelo"',
+                     'en': '"The largest landscape alteration in subantarctic forests since the last ice age"'},
     'footer_note': {'es': 'Nota: Las imágenes satelitales se actualizan periódicamente. La superposición de impacto se simula con base en datos científicos reales.',
                     'pt': 'Nota: As imagens de satélite são atualizadas periodicamente. A sobreposição de impacto é simulada com base em dados científicos reais.',
                     'en': 'Note: Satellite images are updated periodically. Impact overlay is simulated based on real scientific data.'},
@@ -188,82 +187,97 @@ def cambiar_idioma(idioma):
     st.session_state.idioma = idioma
     st.rerun()
 
+# Função para abrir links externos
+def abrir_link(url):
+    webbrowser.open_new_tab(url)
+
 # ==================================================
 # CONFIGURACIÓN DE LA PÁGINA
 # ==================================================
 
 st.set_page_config(
     page_title="Castores en Isla Navarino - Impacto Ambiental",
-    page_icon="🌳",
+    page_icon="🪵",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Barra de navegación superior (como en el ejemplo)
+# CSS para barra de navegación (fondo blanco)
 st.markdown("""
 <style>
+    /* Barra de navegación */
     .nav-bar {
-        background: linear-gradient(90deg, #2c5f2d, #1a3d1a);
-        padding: 12px 25px;
-        border-radius: 10px;
+        background-color: white;
+        padding: 15px 25px;
+        border-radius: 0px;
         margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
+        border-bottom: 1px solid #e0e0e0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     .nav-links {
         display: flex;
-        gap: 20px;
+        gap: 25px;
         flex-wrap: wrap;
         align-items: center;
     }
     .nav-link {
-        color: white;
+        color: #333;
         text-decoration: none;
         font-weight: 500;
-        padding: 5px 10px;
-        border-radius: 5px;
+        padding: 8px 0px;
         transition: all 0.3s;
+        font-size: 0.9rem;
+        background: none;
+        border: none;
+        cursor: pointer;
     }
     .nav-link:hover {
-        background-color: rgba(255,255,255,0.2);
-        color: #ffeb3b;
+        color: #2c5f2d;
+        text-decoration: underline;
     }
     .nav-brand {
-        color: #ffeb3b;
-        font-weight: bold;
-        font-size: 1.1rem;
+        color: #2c5f2d;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-right: 20px;
     }
     .lang-buttons {
         display: flex;
-        gap: 8px;
+        gap: 10px;
     }
     .lang-btn {
-        background-color: rgba(255,255,255,0.15);
-        color: white;
-        border: none;
-        padding: 5px 12px;
+        background-color: #f0f0f0;
+        color: #333;
+        border: 1px solid #ddd;
+        padding: 6px 14px;
         border-radius: 20px;
         cursor: pointer;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         transition: all 0.3s;
     }
     .lang-btn:hover {
-        background-color: rgba(255,255,255,0.3);
+        background-color: #e0e0e0;
         transform: scale(1.02);
     }
     .lang-btn-active {
-        background-color: #ffeb3b;
-        color: #1a3d1a;
+        background-color: #2c5f2d;
+        color: white;
+        border-color: #2c5f2d;
         font-weight: bold;
     }
     @media (max-width: 768px) {
         .nav-bar {
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
         }
         .nav-links {
+            justify-content: center;
+        }
+        .lang-buttons {
             justify-content: center;
         }
     }
@@ -326,44 +340,55 @@ st.markdown("""
     .fonte-dados p {
         margin: 5px 0;
     }
+    /* Botão de link estilo texto */
+    .link-button {
+        background: none;
+        border: none;
+        color: #333;
+        font-weight: 500;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 8px 0px;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+    .link-button:hover {
+        color: #2c5f2d;
+        text-decoration: underline;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==================================================
-# BARRA DE NAVEGACIÓN SUPERIOR CON BOTONES DE IDIOMA
+# BARRA DE NAVEGACIÓN SUPERIOR (FONDO BLANCO)
 # ==================================================
 
-col_nav1, col_nav2 = st.columns([3, 1])
-
-with col_nav1:
-    st.markdown(f"""
-    <div class="nav-bar">
-        <div class="nav-links">
-            <span class="nav-brand">🌲 Amauri Almeida</span>
-            <a href="#" class="nav-link">{t('nav_home')}</a>
-            <a href="#" class="nav-link">{t('nav_works')}</a>
-            <a href="#" class="nav-link">{t('nav_cv')}</a>
-            <a href="#" class="nav-link">{t('nav_linkedin')}</a>
-            <a href="#" class="nav-link">{t('nav_github')}</a>
-            <a href="#" class="nav-link">{t('nav_email')}</a>
-        </div>
+# Usar HTML para la barra de navegación con links clicables
+nav_html = f'''
+<div class="nav-bar">
+    <div class="nav-links">
+        <span class="nav-brand">Amauri</span>
+        <a href="https://amaurialmeida.github.io/environmental-portfolio/" target="_blank" class="nav-link">{t('nav_portfolio')}</a>
+        <a href="https://linkedin.com/in/amauri-almeida26/" target="_blank" class="nav-link">{t('nav_linkedin')}</a>
+        <a href="https://github.com/amaurialmeida" target="_blank" class="nav-link">{t('nav_github')}</a>
+        <a href="mailto:amauri@tutamail.com" class="nav-link">{t('nav_email')}</a>
     </div>
-    """, unsafe_allow_html=True)
+</div>
+'''
 
-with col_nav2:
-    # Botones de idioma
-    idioma_actual = st.session_state.idioma
-    col_es, col_pt, col_en = st.columns(3)
-    
-    with col_es:
-        if st.button("🇪🇸 ES", key="btn_es", use_container_width=True):
-            cambiar_idioma('es')
-    with col_pt:
-        if st.button("🇧🇷 PT", key="btn_pt", use_container_width=True):
-            cambiar_idioma('pt')
-    with col_en:
-        if st.button("🇺🇸 EN", key="btn_en", use_container_width=True):
-            cambiar_idioma('en')
+st.markdown(nav_html, unsafe_allow_html=True)
+
+# Botones de idioma debajo de la barra de navegación
+col_lang1, col_lang2, col_lang3 = st.columns([1, 1, 10])
+with col_lang1:
+    if st.button("🇪🇸 ES", key="btn_es_nav", use_container_width=True):
+        cambiar_idioma('es')
+with col_lang2:
+    if st.button("🇧🇷 PT", key="btn_pt_nav", use_container_width=True):
+        cambiar_idioma('pt')
+with col_lang3:
+    if st.button("🇺🇸 EN", key="btn_en_nav", use_container_width=True):
+        cambiar_idioma('en')
 
 st.markdown("---")
 
