@@ -7,19 +7,19 @@ import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 import os
- 
+
 st.set_page_config(
     page_title="Espécies Invasoras · Isla Navarino",
     page_icon="🦫",
     layout="wide"
 )
- 
+
 # ============================================================
 # SISTEMA DE IDIOMAS
 # ============================================================
 if "lang" not in st.session_state:
     st.session_state.lang = "pt"
- 
+
 TRANSLATIONS = {
     "pt": {
         "page_title": "Espécies Invasoras · Isla Navarino",
@@ -94,8 +94,8 @@ TRANSLATIONS = {
         "conclusion_author": "Amauri Almeida · Observação de campo · Puerto Williams, Isla Navarino, Chile · Mar–Out 2025",
         "field_label": "REGISTRO PESSOAL DE CAMPO",
         "field_title": "8 Meses no Fim do Mundo",
-        "field_instructions_title": ".",
-        "field_instructions": "..",
+        "field_instructions_title": "📁 Como adicionar suas fotos",
+        "field_instructions": "Coloque suas fotos na pasta <code>assets/campo/</code> com os nomes exatos abaixo. O sistema detecta automaticamente e substitui o placeholder pela imagem real.",
         "photos": [
             {
                 "emoji": "🦫",
@@ -181,7 +181,7 @@ TRANSLATIONS = {
         "footer_desc": "Tecnólogo em Gestão Ambiental · FATEC Jundiaí<br>Pós-Graduação em IA, Machine Learning & Data Science · Ciência de Dados & Big Data<br>Análise e Desenvolvimento de Sistemas · FACINT Maringá",
         "footer_links": "📍 Puerto Williams · Isla Navarino · Chile (Mar–Out 2025) | Fernandópolis · SP · Brasil",
     },
- 
+
     # ── ESPANHOL ─────────────────────────────────────────────
     "es": {
         "page_title": "Especies Invasoras · Isla Navarino",
@@ -244,8 +244,8 @@ TRANSLATIONS = {
         "conclusion_author": "Amauri Almeida · Observación de campo · Puerto Williams, Isla Navarino, Chile · Mar–Oct 2025",
         "field_label": "REGISTRO PERSONAL DE CAMPO",
         "field_title": "8 Meses en el Fin del Mundo",
-        "field_instructions_title": ".",
-        "field_instructions": "..",
+        "field_instructions_title": "📁 Cómo agregar sus fotos",
+        "field_instructions": "Coloque sus fotos en la carpeta <code>assets/campo/</code> con los nombres exactos indicados en cada tarjeta.",
         "photos": [
             {"emoji": "🦫", "titulo": "Represa 1 — La Más Cercana a Puerto Williams", "desc": "La represa más cercana al centro urbano de Puerto Williams, observada durante trekking por Isla Navarino. La proximidad con la ciudad demuestra la velocidad de avance de los castores.", "path": "assets/campo/01_castoreira_pw_centro.jpg", "legenda": "Represa 1 · Cerca de Puerto Williams · Isla Navarino, Chile · 2025"},
             {"emoji": "🤳", "titulo": "Selfie — Represa 1 · Marzo 2025", "desc": "Registro personal de Amauri Almeida en la primera represa visitada en Puerto Williams, marzo 2025.", "path": "assets/campo/02_selfie_castoreira1_marco2025.jpg", "legenda": "Amauri Almeida · Represa 1 · Puerto Williams · Marzo 2025", "destaque": True},
@@ -274,7 +274,7 @@ TRANSLATIONS = {
         "footer_desc": "Tecnólogo en Gestión Ambiental · FATEC Jundiaí<br>Posgrado en IA, Machine Learning & Data Science · Ciencia de Datos & Big Data<br>Análisis y Desarrollo de Sistemas · FACINT Maringá",
         "footer_links": "📍 Puerto Williams · Isla Navarino · Chile (Mar–Oct 2025) | Fernandópolis · SP · Brasil",
     },
- 
+
     # ── INGLÊS ───────────────────────────────────────────────
     "en": {
         "page_title": "Invasive Species · Isla Navarino",
@@ -337,8 +337,8 @@ TRANSLATIONS = {
         "conclusion_author": "Amauri Almeida · Field observation · Puerto Williams, Isla Navarino, Chile · Mar–Oct 2025",
         "field_label": "PERSONAL FIELD RECORD",
         "field_title": "8 Months at the End of the World",
-        "field_instructions_title": ".",
-        "field_instructions": "..",
+        "field_instructions_title": "📁 How to add your photos",
+        "field_instructions": "Place your photos in the <code>assets/campo/</code> folder with the exact file names shown on each card.",
         "photos": [
             {"emoji": "🦫", "titulo": "Dam 1 — Closest to Puerto Williams", "desc": "The beaver dam nearest to Puerto Williams city center, observed during a trek on Isla Navarino. Proximity to the city illustrates the beavers' expansion speed.", "path": "assets/campo/01_castoreira_pw_centro.jpg", "legenda": "Dam 1 · Near Puerto Williams · Isla Navarino, Chile · 2025"},
             {"emoji": "🤳", "titulo": "Selfie — Dam 1 · March 2025", "desc": "Personal record of Amauri Almeida at the first beaver dam visited in Puerto Williams, March 2025.", "path": "assets/campo/02_selfie_castoreira1_marco2025.jpg", "legenda": "Amauri Almeida · Dam 1 · Puerto Williams · March 2025", "destaque": True},
@@ -368,7 +368,7 @@ TRANSLATIONS = {
         "footer_links": "📍 Puerto Williams · Isla Navarino · Chile (Mar–Oct 2025) | Fernandópolis · SP · Brazil",
     },
 }
- 
+
 # ── SELETOR ──────────────────────────────────────────────────
 def render_lang_selector():
     c0, c1, c2, c3 = st.columns([8, 1, 1, 1])
@@ -384,10 +384,10 @@ def render_lang_selector():
         if st.button("🇺🇸 EN", use_container_width=True,
                      type="primary" if st.session_state.lang == "en" else "secondary"):
             st.session_state.lang = "en"; st.rerun()
- 
+
 render_lang_selector()
 T = TRANSLATIONS[st.session_state.lang]
- 
+
 # ── ESTILOS ───────────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -446,12 +446,12 @@ html,body,[class*="css"]{font-family:'DM Sans',sans-serif;background-color:var(-
 .photo-destaque{border:3px solid var(--forest-light);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px rgba(45,90,50,0.15);}
 </style>
 """, unsafe_allow_html=True)
- 
+
 # ── DADOS ─────────────────────────────────────────────────────
 anos = [1946,1950,1955,1960,1965,1970,1975,1980,1985,1990,1995,2000,2005,2010,2015,2020,2025]
 castores = [20,120,500,1500,4000,8000,15000,25000,40000,60000,75000,85000,95000,100000,105000,108000,110000]
 ha_destruidos = [0,5,20,80,200,500,1200,2500,5000,9000,14000,19000,24000,27000,29000,30500,31000]
- 
+
 # Pontos de calor na Isla Navarino
 # Baseados em concentrações conhecidas de castoreiras
 heat_data = [
@@ -473,7 +473,7 @@ heat_data = [
     [-55.05, -68.00, 0.65],
     [-54.90, -68.10, 0.5],
 ]
- 
+
 # Pontos de avistamento pessoal
 pontos_campo = [
     {"nome": "Castoreira 1 — Puerto Williams (mais próxima da cidade)", "lat": -54.930, "lon": -67.612,
@@ -489,7 +489,7 @@ pontos_campo = [
      "tipo": "conferencia", "cor": "green", "icon": "graduation-cap",
      "desc": "Local da 3ª Conferência Internacional CHIC realizada em 2025. Participação como convidado observador."},
 ]
- 
+
 # ── HERO ──────────────────────────────────────────────────────
 st.markdown(f"""
 <div class="hero-wrap">
@@ -505,32 +505,32 @@ st.markdown(f"""
   </div>
 </div>
 """, unsafe_allow_html=True)
- 
+
 c1,c2,c3,c4 = st.columns(4)
 with c1: st.markdown('<div class="metric-box danger"><div class="metric-val">110.000+</div><div class="metric-label">'+T['m1']+'</div></div>', unsafe_allow_html=True)
 with c2: st.markdown('<div class="metric-box earth"><div class="metric-val">70.600</div><div class="metric-label">'+T['m2']+'</div></div>', unsafe_allow_html=True)
 with c3: st.markdown('<div class="metric-box"><div class="metric-val">31.000 ha</div><div class="metric-label">'+T['m3']+'</div></div>', unsafe_allow_html=True)
 with c4: st.markdown('<div class="metric-box water"><div class="metric-val">1946</div><div class="metric-label">'+T['m4']+'</div></div>', unsafe_allow_html=True)
- 
+
 st.markdown("<br>", unsafe_allow_html=True)
- 
+
 # ── ABAS ──────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5 = st.tabs([T['tab1'], T['tab2'], T['tab3'], T['tab4'], T['tab5']])
- 
+
 # ── TAB 1: MAPA ───────────────────────────────────────────────
 with tab1:
     st.markdown(f'<div class="section-label">{T["map_label"]}</div>', unsafe_allow_html=True)
- 
+
     # ─ MAPA SUPERIOR: True Color / Satélite ─
     st.markdown(f'<div class="section-title" style="font-size:1.3rem">{T["map_title_top"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="info-card">{T["map_hint_top"]}</div>', unsafe_allow_html=True)
- 
+
     mapa_top = folium.Map(
         location=[-54.95, -67.65], zoom_start=10,
         tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attr='Esri World Imagery'
     )
- 
+
     # Marcadores dos pontos
     icon_map = {
         "castoreira": ("orange", "paw"),
@@ -551,15 +551,15 @@ with tab1:
             tooltip=p["nome"],
             icon=folium.Icon(color=cor, icon=ico, prefix="fa")
         ).add_to(mapa_top)
- 
+
     folium_static(mapa_top, width=1100, height=480)
- 
+
     st.markdown("<br>", unsafe_allow_html=True)
- 
+
     # ─ MAPA INFERIOR: Heatmap ─
     st.markdown(f'<div class="section-title" style="font-size:1.3rem">{T["map_title_heat"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="info-card earth">{T["map_hint_heat"]}</div>', unsafe_allow_html=True)
- 
+
     mapa_heat = folium.Map(
         location=[-55.0, -67.6], zoom_start=9,
         tiles='CartoDB dark_matter'
@@ -571,7 +571,7 @@ with tab1:
         gradient={0.2: '#1B3A1E', 0.4: '#3D7A45', 0.65: '#F5A623', 0.85: '#E8340A', 1.0: '#FFFFFF'},
         name="Intensidade do Impacto"
     ).add_to(mapa_heat)
- 
+
     # Pontos sobre o heatmap também
     for p in pontos_campo:
         folium.CircleMarker(
@@ -580,13 +580,13 @@ with tab1:
             fill_opacity=0.9, weight=2,
             tooltip=p["nome"]
         ).add_to(mapa_heat)
- 
+
     folium_static(mapa_heat, width=1100, height=420)
- 
+
     # ─ GRÁFICOS ─
     st.markdown(f"<br><div class='section-label'>{T['chart_label']}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='section-title'>{T['chart_title']}</div>", unsafe_allow_html=True)
- 
+
     # Gráfico 1: Expansão da população
     fig_pop = go.Figure()
     fig_pop.add_trace(go.Scatter(
@@ -615,7 +615,7 @@ with tab1:
         margin=dict(t=30, b=20)
     )
     st.plotly_chart(fig_pop, use_container_width=True)
- 
+
     col_a, col_b = st.columns(2)
     with col_a:
         fig_ha = go.Figure()
@@ -639,7 +639,7 @@ with tab1:
             margin=dict(t=50, b=20)
         )
         st.plotly_chart(fig_ha, use_container_width=True)
- 
+
     with col_b:
         # Cascata de invasão
         especies = ["Castor<br>canadensis", "Arganazes<br>(muskrat)", "Martas<br>(mink)", "Fauna<br>nativa ⬇"]
@@ -665,19 +665,19 @@ with tab1:
             margin=dict(t=50, b=20)
         )
         st.plotly_chart(fig_casc, use_container_width=True)
- 
+
 # ── TAB 2: METODOLOGIA ────────────────────────────────────────
 with tab2:
     st.markdown(f'<div class="section-label">{T["method_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="section-title">{T["method_title"]}</div>', unsafe_allow_html=True)
- 
+
     st.markdown(f"""
     <div class="discovery-box">
       <div class="discovery-title">{T['sci_question_title']}</div>
       <p style="font-size:1.05rem;color:#1B3A1E;line-height:1.7"><em>{T['sci_question']}</em></p>
     </div>
     """, unsafe_allow_html=True)
- 
+
     st.markdown(f'<div class="section-label" style="margin-top:1.5rem">{T["pipeline_label"]}</div>', unsafe_allow_html=True)
     for num, title, desc in T['steps']:
         st.markdown(f"""
@@ -689,7 +689,7 @@ with tab2:
           </div>
         </div>
         """, unsafe_allow_html=True)
- 
+
     col_m1, col_m2 = st.columns(2)
     with col_m1:
         st.markdown(f"""
@@ -705,7 +705,7 @@ with tab2:
           <div style="font-size:0.88rem;line-height:2.1">{T['impact_text']}</div>
         </div>
         """, unsafe_allow_html=True)
- 
+
     st.markdown("""
     <div class="info-card water" style="margin-top:0.5rem;background:linear-gradient(135deg,#EAF4FB,#D0E8F5)">
       <strong style="color:#1A5C8A">📊 Dados Quantitativos Verificados (2025)</strong><br><br>
@@ -721,12 +721,12 @@ with tab2:
       <div style="font-size:0.75rem;color:#7A8A96;margin-top:0.5rem">Fonte: GEF · National Geographic (2019) · Estudo Univ. Texas do Norte (2016) · Artigo Journal of Biogeography (2009)</div>
     </div>
     """, unsafe_allow_html=True)
- 
+
 # ── TAB 3: DESCOBERTAS ────────────────────────────────────────
 with tab3:
     st.markdown(f'<div class="section-label">{T["discovery_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="section-title">{T["discovery_title"]}</div>', unsafe_allow_html=True)
- 
+
     for emoji, titulo, texto in T['discoveries']:
         st.markdown(f"""
         <div class="discovery-box" style="margin-bottom:0.8rem">
@@ -739,7 +739,7 @@ with tab3:
           </div>
         </div>
         """, unsafe_allow_html=True)
- 
+
     st.markdown(f'<div class="section-label" style="margin-top:1.5rem">{T["conclusion_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f"""
     <div class="info-card" style="border-left-color:#1B3A1E;background:linear-gradient(135deg,#EEF5EE,#DCF0DC)">
@@ -748,7 +748,7 @@ with tab3:
       <p style="color:#3D7A45;font-size:0.82rem;margin-bottom:0"><em>{T['conclusion_author']}</em></p>
     </div>
     """, unsafe_allow_html=True)
- 
+
     # Gráfico final de impacto
     categorias_f = ["Castores\nestimados (÷1000)", "Represas\nmapeadas (÷1000)", "Hectares\ndestruídos (÷100)", "Custo anual\n(M USD)"]
     valores_f = [110, 70.6, 310, 66]
@@ -768,23 +768,23 @@ with tab3:
         margin=dict(t=50, b=20)
     )
     st.plotly_chart(fig_res, use_container_width=True)
- 
+
 # ── TAB 4: EM CAMPO ───────────────────────────────────────────
 with tab4:
     st.markdown(f'<div class="section-label">{T["field_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="section-title">{T["field_title"]}</div>', unsafe_allow_html=True)
- 
+
     st.markdown(f"""
     <div class="info-card earth" style="margin-bottom:1.5rem">
       <strong>{T['field_instructions_title']}</strong><br>
       <div style="font-size:0.88rem;color:#5C3D1E;margin-top:0.4rem">{T['field_instructions']}</div>
     </div>
     """, unsafe_allow_html=True)
- 
+
     photos = T['photos']
     foto_destaque = next((f for f in photos if f.get("destaque")), None)
     fotos_normais = [f for f in photos if not f.get("destaque")]
- 
+
     # Grade 3 colunas
     for row_start in range(0, len(fotos_normais), 3):
         row_photos = fotos_normais[row_start:row_start + 3]
@@ -805,7 +805,7 @@ with tab4:
                     """, unsafe_allow_html=True)
                 st.markdown(f'<div class="photo-legenda">{foto["legenda"]}</div>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
- 
+
     # Destaque — largura total
     if foto_destaque:
         st.markdown("---")
@@ -825,7 +825,7 @@ with tab4:
             </div>
             """, unsafe_allow_html=True)
         st.markdown(f'<div class="photo-legenda" style="font-size:0.82rem;padding:0.7rem 1.2rem">{foto_destaque["legenda"]}</div>', unsafe_allow_html=True)
- 
+
     # Timeline
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(f'<div class="section-label">{T["timeline_field_label"]}</div>', unsafe_allow_html=True)
@@ -839,12 +839,12 @@ with tab4:
           </div>
         </div>
         """, unsafe_allow_html=True)
- 
+
 # ── TAB 5: FONTES ─────────────────────────────────────────────
 with tab5:
     st.markdown(f'<div class="section-label">{T["sources_label"]}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="section-title">{T["sources_title"]}</div>', unsafe_allow_html=True)
- 
+
     fontes = [
         ("NAT GEO", "National Geographic Brasil — Haley Cohen Gilliland (2019)",
          "Argentina introduziu castores na Tierra del Fuego, mas não foi uma boa ideia. Publicado em ago/2019, atualizado nov/2020. Fotos: Luján Agusti.", "#1B3A1E"),
@@ -861,7 +861,7 @@ with tab5:
         ("CAMPO", "Observação Pessoal de Campo — Amauri Almeida (2025)",
          "8 meses de residência em Puerto Williams, Isla Navarino (Mar–Out 2025). Trekkings e visitas às castoreiras 1 e 2. Registro fotográfico original.", "#3D7A45"),
     ]
- 
+
     for sigla, nome, desc, cor in fontes:
         st.markdown(f"""
         <div class="info-card" style="border-left-color:{cor}">
@@ -876,11 +876,11 @@ with tab5:
           </div>
         </div>
         """, unsafe_allow_html=True)
- 
+
     st.markdown(f"<br><div class='section-label'>{T['tech_label']}</div>", unsafe_allow_html=True)
     techs = ["Python 3.11", "Streamlit", "Plotly", "Folium", "Folium HeatMap", "Pandas", "NumPy", "ESRI World Imagery"]
     st.markdown(''.join([f'<span class="source-badge">{t}</span>' for t in techs]), unsafe_allow_html=True)
- 
+
     st.markdown(f"""
     <div class="footer-wrap" style="margin-top:2rem">
       <div class="footer-title">{T['footer_title']}</div>
