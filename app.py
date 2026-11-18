@@ -354,4 +354,132 @@ with tab3:
         st.markdown(f'<div class="discovery-box" style="margin-bottom:0.8rem"><div style="display:flex;align-items:flex-start;gap:1rem"><span style="font-size:1.5rem">{emoji}</span><div><div class="discovery-title">{titulo}</div><p style="color:#1B3A1E;line-height:1.65;font-size:0.93rem;margin:0">{texto}</p></div></div></div>', unsafe_allow_html=True)
 
     st.markdown(f'<div class="section-label" style="margin-top:1.5rem">{T["conclusion_label"]}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="info-card" style="border-left-color:#1B3A1E;background:linear-gradient(135deg,#EEF5EE,#
+    st.markdown(f'<div class="info-card" style="border-left-color:#1B3A1E;background:linear-gradient(135deg,#EEF5EE,#DCF0DC)"><strong style="color:#1B3A1E;font-size:1rem">{T["conclusion_title"]}</strong><br><br><p style="color:#1B3A1E;line-height:1.7;font-size:0.93rem">{T["conclusion_text"]}</p><p style="color:#3D7A45;font-size:0.82rem;margin-bottom:0"><em>{T["conclusion_author"]}</em></p></div>', unsafe_allow_html=True)
+
+    categorias_f = ["Castores\nestimados (÷1000)", "Represas\nmapeadas (÷1000)", "Hectares\ndestruídos (÷100)", "Custo anual\n(M USD)"]
+    valores_f = [110, 70.6, 310, 66]
+    cores_f = ['#8B2515','#A06A3A','#5C3D1E','#1A5C8A']
+    fig_res = go.Figure()
+    for cat, val, cor in zip(categorias_f, valores_f, cores_f):
+        fig_res.add_trace(go.Bar(x=[cat], y=[val], marker_color=cor, opacity=0.85, showlegend=False,
+                                  text=[f"{val:.0f}"], textposition='outside', textfont=dict(size=11, color=cor, family="DM Mono"),
+                                  hovertemplate=f'<b>{cat}</b><br>{val}<extra></extra>'))
+    fig_res.update_layout(
+        title=dict(text="Resumo do Impacto — Castores na Patagônia (2025)", font=dict(size=14, family='Playfair Display')),
+        paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=340, font=dict(family='DM Sans'),
+        xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#e8ede8'), margin=dict(t=50, b=20)
+    )
+    plot(fig_res)
+
+# ── TAB 4: EM CAMPO ───────────────────────────────────────────
+with tab4:
+    st.markdown(f'<div class="section-label">{T["field_label"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-title">{T["field_title"]}</div>', unsafe_allow_html=True)
+
+    st.markdown(f'<div class="info-card earth" style="margin-bottom:1.5rem"><strong>{T["field_inst_title"]}</strong><br><div style="font-size:0.88rem;color:#5C3D1E;margin-top:0.4rem">{T["field_inst"]}</div></div>', unsafe_allow_html=True)
+
+    photos = T['photos']
+    foto_destaque = next((f for f in photos if f.get("destaque")), None)
+    fotos_normais = [f for f in photos if not f.get("destaque")]
+
+    for row_start in range(0, len(fotos_normais), 3):
+        row_photos = fotos_normais[row_start:row_start + 3]
+        cols = st.columns(len(row_photos))
+        for col, foto in zip(cols, row_photos):
+            with col:
+                _img_ok = False
+                if os.path.exists(foto['path']):
+                    try:
+                        Image.open(foto['path']).verify()
+                        _img_ok = True
+                    except Exception:
+                        _img_ok = False
+                if _img_ok:
+                    st.image(foto['path'], use_container_width=True)
+                else:
+                    st.markdown(f"""
+                    <div class="photo-placeholder">
+                      <div class="photo-emoji">{foto['emoji']}</div>
+                      <div class="photo-title">{foto['titulo']}</div>
+                      <div class="photo-desc">{foto['desc']}</div>
+                      <div class="photo-path">{foto['path']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                st.markdown(f'<div class="photo-legenda">{foto["legenda"]}</div>', unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+    if foto_destaque:
+        st.markdown("---")
+        st.markdown('<div class="section-label" style="color:#3D7A45">⭐ DESTAQUE — REGISTRO PESSOAL DE CAMPO</div>', unsafe_allow_html=True)
+        _dest_ok = False
+        if os.path.exists(foto_destaque['path']):
+            try:
+                Image.open(foto_destaque['path']).verify()
+                _dest_ok = True
+            except Exception:
+                _dest_ok = False
+        if _dest_ok:
+            st.markdown('<div class="photo-destaque">', unsafe_allow_html=True)
+            st.image(foto_destaque['path'], use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div class="photo-placeholder" style="min-height:300px">
+              <div class="photo-emoji" style="font-size:3rem">{foto_destaque['emoji']}</div>
+              <div class="photo-title" style="font-size:1.1rem">{foto_destaque['titulo']}</div>
+              <div class="photo-desc" style="max-width:600px">{foto_destaque['desc']}</div>
+              <div class="photo-path">{foto_destaque['path']}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        st.markdown(f'<div class="photo-legenda" style="font-size:0.82rem;padding:0.7rem 1.2rem">{foto_destaque["legenda"]}</div>', unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(f'<div class="section-label">{T["timeline_field_label"]}</div>', unsafe_allow_html=True)
+    for data, titulo, desc in T['timeline_field_items']:
+        st.markdown(f"""
+        <div class="timeline-item">
+          <div class="timeline-year">{data}</div>
+          <div style="flex:1">
+            <div class="timeline-title">{titulo}</div>
+            <div class="timeline-desc">{desc}</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ── TAB 5: FONTES ─────────────────────────────────────────────
+with tab5:
+    st.markdown(f'<div class="section-label">{T["sources_label"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-title">{T["sources_title"]}</div>', unsafe_allow_html=True)
+
+    fontes = [
+        ("NAT GEO", "National Geographic Brasil — Haley Cohen Gilliland (2019)", "Argentina introduziu castores na Tierra del Fuego, mas não foi uma boa ideia. Publicado em ago/2019, atualizado nov/2020. Fotos: Luján Agusti.", "#1B3A1E"),
+        ("GEF CASTOR", "Global Environment Facility (GEF) — Projeto Castor", "Parceria internacional Argentina–Chile para controle e erradicação dos castores. gefcastor.mma.gob.cl · 70.000–110.000 castores estimados.", "#3D7A45"),
+        ("UNIV. TEXAS", "Universidade do Norte do Texas — Crego, Jiménez & Rozzi (2016)", "Biological Invasions · 'Runaway invasion process' em Isla Navarino · Cascata: castor → arganazes → martas → impacto fauna nativa.", "#5C3D1E"),
+        ("J. BIOGEOGR.", "Journal of Biogeography (2009)", "Classificação do impacto dos castores na Patagônia como 'a maior alteração de paisagem em florestas subantárticas desde a última era do gelo'.", "#A06A3A"),
+        ("ISSG/FAO", "ISSG — Invasive Species Specialist Group / FAO Chile", "Dados de área colonizada (69.900 km²), custo econômico (US$ 66 mi/ano na Argentina) e viabilidade da erradicação.", "#1A5C8A"),
+        ("CHIC 2025", "3ª Conferência Internacional CHIC — Puerto Williams, 2025", "Conservación de Humedales y Islas del Cono sur · Participação como convidado observador · Pesquisadores: Guilherme (Bélgica), Nicolas (França) e outros.", "#2D5A32"),
+        ("CAMPO", "Observação Pessoal de Campo — Amauri Almeida (2025)", "8 meses de residência em Puerto Williams, Isla Navarino (Mar–Out 2025). Trekkings e visitas às castoreiras 1 e 2. Registro fotográfico original.", "#3D7A45"),
+    ]
+
+    for sigla, nome, desc, cor in fontes:
+        st.markdown(f"""<div class="info-card" style="border-left-color:{cor}">
+          <div style="display:flex;align-items:flex-start;gap:1rem">
+            <div style="background:{cor};color:white;font-family:'DM Mono',monospace;font-size:0.6rem;padding:4px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:2px;letter-spacing:0.5px;font-weight:bold;text-align:center;min-width:70px">{sigla}</div>
+            <div><div style="font-weight:500;font-size:0.9rem;color:#1B3A1E">{nome}</div><div style="font-size:0.82rem;color:#7A7060;margin-top:0.2rem">{desc}</div></div>
+          </div>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown(f"<br><div class='section-label'>{T['tech_label']}</div>", unsafe_allow_html=True)
+    techs = ["Python 3.11", "Streamlit", "Plotly", "Folium", "Folium HeatMap", "Pandas", "NumPy", "ESRI World Imagery"]
+    st.markdown(''.join([f'<span class="source-badge">{t}</span>' for t in techs]), unsafe_allow_html=True)
+
+    st.markdown(f"""<div class="footer-wrap" style="margin-top:2rem">
+      <div class="footer-title">{T['footer_title']}</div>
+      <p style="margin:0.5rem 0;font-size:0.9rem">{T['footer_desc']}</p>
+      <p style="margin:1rem 0 0.5rem;font-size:0.85rem;opacity:0.7">
+        {T['footer_links']} &nbsp;|&nbsp;
+        🌐 <a href="https://amaurialmeida.github.io/environmental-portfolio/" style="color:#A8D5A2">Portfólio</a> &nbsp;|&nbsp;
+        🐙 <a href="https://github.com/amaurialmeida" style="color:#A8D5A2">GitHub</a>
+      </p>
+      <p style="font-size:0.75rem;opacity:0.5;margin:0">© 2025–2026 · Espécies Invasoras · Isla Navarino · Puerto Williams, Chile</p>
+    </div>""", unsafe_allow_html=True)
